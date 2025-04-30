@@ -1,14 +1,20 @@
 package org.example.userauthservice.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import org.antlr.v4.runtime.misc.Pair;
+import org.example.userauthservice.dtos.EmailDto;
 import org.example.userauthservice.exceptions.*;
 import org.example.userauthservice.models.User;
+import org.example.userauthservice.producers.IProducer;
+import org.example.userauthservice.producers.KafkaProducer;
 import org.example.userauthservice.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +33,14 @@ public class AuthService implements IAuthService{
     SecretKey secretKey;
 
     @Autowired
+    private IProducer<EmailDto> emailProducer;
+
+
+    @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public User signUp(User user)
     {
@@ -40,6 +53,26 @@ public class AuthService implements IAuthService{
 
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         userRepo.save(user);
+
+        EmailDto emailDto = new EmailDto();
+        emailDto.setTo(user.getEmail());
+        emailDto.setFrom("anuragbatch@gmail.com");
+        emailDto.setSubject("Welcome to Scaler");
+        emailDto.setBody("Thanks for registration have a great learning experience ahead");
+
+//        try {
+//            String payload = objectMapper.writeValueAsString(emailDto);
+//            for(int i=0;i<1000;i++)
+//            {
+//                kafkaProducer.sendMessage("SignUpNotif", payload);
+//            }
+//
+//        } catch (JsonProcessingException e) {
+//            e.printStackTrace(); // or use proper logging
+//        }
+
+        emailProducer.sendMessage("SignUpNotif",emailDto);
+
         return user;
     }
 
@@ -101,3 +134,4 @@ public class AuthService implements IAuthService{
     }
 
 }
+

@@ -88,6 +88,7 @@ public class AuthController {
         user.setName(userSignUpRequestDto.getName());
         user.setEmail(userSignUpRequestDto.getEmail());
         user.setPassword(userSignUpRequestDto.getPassword());
+        user.setRole(userSignUpRequestDto.getRole());
         return user;
     }
 
@@ -96,6 +97,7 @@ public class AuthController {
         UserDto userDto = new UserDto();
         userDto.setName(user.getName());
         userDto.setEmail(user.getEmail());
+        userDto.setRole(user.getRole());
         return userDto;
     }
 }
